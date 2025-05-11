@@ -14,9 +14,10 @@ abstract contract ERC4626 is ERC20 {
     /*//////////////////////////////////////////////////////////////
                                  EVENTS
     //////////////////////////////////////////////////////////////*/
-
+    // @notice Event for when a user deposits assets into the vault
     event Deposit(address indexed caller, address indexed owner, uint256 assets, uint256 shares);
 
+    // @notice Event for when a user withdraws assets from the vault
     event Withdraw(
         address indexed caller,
         address indexed receiver,
@@ -43,6 +44,7 @@ abstract contract ERC4626 is ERC20 {
                         DEPOSIT/WITHDRAWAL LOGIC
     //////////////////////////////////////////////////////////////*/
 
+    // @notice Function for a user to deposit assets into the vault
     function deposit(uint256 assets, address receiver) public virtual returns (uint256 shares) {
         // Check for rounding error since we round down in previewDeposit.
         require((shares = previewDeposit(assets)) != 0, "ZERO_SHARES");
@@ -57,6 +59,7 @@ abstract contract ERC4626 is ERC20 {
         afterDeposit(assets, shares);
     }
 
+    // @notice Function for a user to mint shares into the vault
     function mint(uint256 shares, address receiver) public virtual returns (uint256 assets) {
         assets = previewMint(shares); // No need to check for rounding error, previewMint rounds up.
 
@@ -70,6 +73,7 @@ abstract contract ERC4626 is ERC20 {
         afterDeposit(assets, shares);
     }
 
+    // @notice Function for a user to withdraw assets from the vault
     function withdraw(
         uint256 assets,
         address receiver,
@@ -92,6 +96,7 @@ abstract contract ERC4626 is ERC20 {
         asset.safeTransfer(receiver, assets);
     }
 
+    // @notice Function for a user to redeem shares for assets from the vault
     function redeem(
         uint256 shares,
         address receiver,
@@ -119,36 +124,43 @@ abstract contract ERC4626 is ERC20 {
                             ACCOUNTING LOGIC
     //////////////////////////////////////////////////////////////*/
 
+    // @notice Function for a user to view the total assets in the vault
     function totalAssets() public view virtual returns (uint256);
 
+    // @notice Function for a user to convert assets to shares
     function convertToShares(uint256 assets) public view virtual returns (uint256) {
         uint256 supply = totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
 
         return supply == 0 ? assets : assets.mulDivDown(supply, totalAssets());
     }
 
+    // @notice Function for a user to convert shares to assets
     function convertToAssets(uint256 shares) public view virtual returns (uint256) {
         uint256 supply = totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
 
         return supply == 0 ? shares : shares.mulDivDown(totalAssets(), supply);
     }
 
+    // @notice Function for a user to preview the amount of shares they would receive for a given amount of assets
     function previewDeposit(uint256 assets) public view virtual returns (uint256) {
         return convertToShares(assets);
     }
 
+    // @notice Function for a user to preview the amount of assets they would receive for a given amount of shares
     function previewMint(uint256 shares) public view virtual returns (uint256) {
         uint256 supply = totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
 
         return supply == 0 ? shares : shares.mulDivUp(totalAssets(), supply);
     }
 
+    // @notice Function for a user to preview the amount of shares they would receive for a given amount of assets
     function previewWithdraw(uint256 assets) public view virtual returns (uint256) {
         uint256 supply = totalSupply; // Saves an extra SLOAD if totalSupply is non-zero.
 
         return supply == 0 ? assets : assets.mulDivUp(supply, totalAssets());
     }
 
+    // @notice Function for a user to preview the amount of assets they would receive for a given amount of shares
     function previewRedeem(uint256 shares) public view virtual returns (uint256) {
         return convertToAssets(shares);
     }
@@ -157,18 +169,22 @@ abstract contract ERC4626 is ERC20 {
                      DEPOSIT/WITHDRAWAL LIMIT LOGIC
     //////////////////////////////////////////////////////////////*/
 
+    // @notice Function for a user to view the maximum amount of assets they can deposit into the vault
     function maxDeposit(address) public view virtual returns (uint256) {
         return type(uint256).max;
     }
 
+    // @notice Function for a user to view the maximum amount of shares they can mint into the vault
     function maxMint(address) public view virtual returns (uint256) {
         return type(uint256).max;
     }
 
+    // @notice Function for a user to view the maximum amount of assets they can withdraw from the vault
     function maxWithdraw(address owner) public view virtual returns (uint256) {
         return convertToAssets(balanceOf[owner]);
     }
 
+    // @notice Function for a user to view the maximum amount of shares they can redeem from the vault
     function maxRedeem(address owner) public view virtual returns (uint256) {
         return balanceOf[owner];
     }
@@ -177,7 +193,9 @@ abstract contract ERC4626 is ERC20 {
                           INTERNAL HOOKS LOGIC
     //////////////////////////////////////////////////////////////*/
 
+    // @notice Function for a user to view the maximum amount of assets they can withdraw from the vault
     function beforeWithdraw(uint256 assets, uint256 shares) internal virtual {}
 
+    // @notice Function for a user to view the maximum amount of shares they can redeem from the vault
     function afterDeposit(uint256 assets, uint256 shares) internal virtual {}
 }
